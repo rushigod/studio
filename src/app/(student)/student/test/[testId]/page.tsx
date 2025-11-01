@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,11 @@ export default function TestPage({ params }: { params: { testId: string } }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const [questions, setQuestions] = useState<(Question & { subject: string })[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, [])
 
   useEffect(() => {
     const pcmQuestions = [
@@ -66,13 +71,15 @@ export default function TestPage({ params }: { params: { testId: string } }) {
   }, [params.testId, isPreview]);
 
   useEffect(() => {
+    if (!isMounted) return;
+
     const timer = setInterval(() => {
-      setSectionTime(prev => prev - 1);
-      setTotalTime(prev => prev - 1);
+      setSectionTime(prev => prev > 0 ? prev - 1 : 0);
+      setTotalTime(prev => prev > 0 ? prev - 1 : 0);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
       if (!isPreview) {
@@ -91,6 +98,8 @@ export default function TestPage({ params }: { params: { testId: string } }) {
   }, [answers, currentSection, sectionTime, totalTime, params.testId, toast, isPreview]);
 
   useEffect(() => {
+    if (!isMounted) return;
+
     if (totalTime <= 0) {
       finishTest();
     } else if (sectionTime <= 0 && currentSection === 'physics-chemistry') {
@@ -98,9 +107,9 @@ export default function TestPage({ params }: { params: { testId: string } }) {
       setSectionTime(isPreview ? 10 * 60 : 90 * 60);
       toast({ title: "Section Changed", description: "Time's up for Physics & Chemistry. Now starting Mathematics."});
     }
-  }, [sectionTime, totalTime, currentSection, finishTest, isPreview, toast]);
+  }, [sectionTime, totalTime, currentSection, finishTest, isPreview, toast, isMounted]);
 
-  if (!test || questions.length === 0) return <div>Loading test...</div>;
+  if (!test || questions.length === 0 || !isMounted) return <div className="flex items-center justify-center h-full">Loading test...</div>;
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -115,8 +124,8 @@ export default function TestPage({ params }: { params: { testId: string } }) {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)]">
-      <header className="p-4 border-b flex justify-between items-center">
+    <div className="flex flex-col h-[calc(100vh-5rem)] bg-card">
+      <header className="p-4 border-b flex justify-between items-center bg-card">
         <h1 className="text-xl font-headline font-bold">{test.name}{isPreview && " (Preview)"}</h1>
         <div className="flex items-center gap-6">
             <div className="text-center">
@@ -131,14 +140,14 @@ export default function TestPage({ params }: { params: { testId: string } }) {
       </header>
 
       <div className="flex-1 grid lg:grid-cols-4 gap-6 p-4 overflow-hidden">
-        <div className="lg:col-span-3 flex flex-col">
+        <div className="lg:col-span-3 flex flex-col space-y-4">
           <Card className="flex-1">
             <CardContent className="p-6 h-full flex flex-col">
               <p className="mb-2 text-muted-foreground">
                 Question {currentQuestionIndex + 1} of {questions.length} | Subject: {currentQuestion.subject}
               </p>
               <p className="font-semibold text-lg mb-6 flex-shrink-0">{currentQuestion.question}</p>
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto pr-2">
                 <RadioGroup value={answers[currentQuestion.id]} onValueChange={handleAnswerChange} className="space-y-4">
                   {Object.entries(currentQuestion.options).map(([key, value]) => (
                     <Label key={key} className="flex items-center gap-4 rounded-lg border p-4 cursor-pointer hover:bg-muted has-[input:checked]:border-primary has-[input:checked]:bg-primary/10">
@@ -150,7 +159,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
               </div>
             </CardContent>
           </Card>
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-between items-center p-4 bg-card rounded-lg border">
             <Button onClick={() => setCurrentQuestionIndex(i => i - 1)} disabled={currentQuestionIndex === 0}>Previous</Button>
             <div>
                 <Button variant="outline" onClick={() => setAnswers(prev => { const newAnswers = {...prev}; delete newAnswers[currentQuestion.id]; return newAnswers; })}>Clear Response</Button>
@@ -159,7 +168,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
           </div>
         </div>
 
-        <div className="lg:col-span-1 flex flex-col">
+        <div className="lg:col-span-1 flex flex-col space-y-4">
           <Card className="flex-1">
             <CardContent className="p-4 h-full">
               <h3 className="font-bold mb-4">Question Palette</h3>
@@ -168,7 +177,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
                   <Button
                     key={q.id}
                     variant={currentQuestionIndex === index ? 'default' : answers[q.id] ? 'secondary' : 'outline'}
-                    size="sm"
+                    size="icon"
                     className="h-9 w-9"
                     onClick={() => setCurrentQuestionIndex(index)}
                   >{index + 1}</Button>
@@ -178,7 +187,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
           </Card>
            <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button className="w-full mt-4" variant="destructive"><AlertTriangle className="mr-2 h-4 w-4"/> Finish Test</Button>
+                    <Button className="w-full" variant="destructive"><AlertTriangle className="mr-2 h-4 w-4"/> Finish Test</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -188,6 +197,7 @@ export default function TestPage({ params }: { params: { testId: string } }) {
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={finishTest}>Yes, Submit Test</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

@@ -10,18 +10,19 @@ import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function AvailableTests() {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    setCurrentTime(new Date());
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
   
   const upcomingTests = tests.filter(test => test.status === 'Upcoming');
 
-  if (!isMounted) {
+  if (!isMounted || !currentTime) {
     return (
         <Card>
             <CardHeader>
