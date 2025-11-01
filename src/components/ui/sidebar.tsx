@@ -22,9 +22,11 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
       <TooltipProvider delayDuration={0}>
-        <div className="flex min-h-screen">
+        <Sheet>
+          <div className="flex min-h-screen">
             {children}
-        </div>
+          </div>
+        </Sheet>
       </TooltipProvider>
     </SidebarContext.Provider>
   );
@@ -60,28 +62,22 @@ export const Sidebar = React.forwardRef<
     <>
         {/* Desktop Sidebar */}
         <aside
-        ref={ref}
-        className={cn(sidebarVariants({ isCollapsed }), 'hidden md:flex', className)}
-        {...props}
+          ref={ref}
+          className={cn(sidebarVariants({ isCollapsed }), 'hidden md:flex', className)}
+          {...props}
         >
             {children}
         </aside>
         
         {/* Mobile Sidebar */}
-        <Sheet>
-            <SheetTrigger asChild>
-                <div />
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64 border-r">
-                <aside
-                    ref={ref}
-                    className={cn(sidebarVariants({ isCollapsed: false }), 'flex', className)}
-                    {...props}
-                >
-                    {children}
-                </aside>
-            </SheetContent>
-        </Sheet>
+        <SheetContent side="left" className="p-0 w-64 border-r md:hidden">
+            <aside
+                className={cn(sidebarVariants({ isCollapsed: false }), 'flex h-full', className)}
+                {...props}
+            >
+                {children}
+            </aside>
+        </SheetContent>
     </>
   );
 });
@@ -137,7 +133,7 @@ export const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('mt-auto border-t', props.children ? 'p-4' : '')} {...props} />
+  <div ref={ref} className={cn('mt-auto border-t p-4')} {...props} />
 ));
 SidebarFooter.displayName = 'SidebarFooter';
 
