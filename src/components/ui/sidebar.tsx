@@ -11,20 +11,27 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 const SidebarContext = React.createContext<{
   isCollapsed: boolean;
   setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  isSheetOpen: boolean;
+  setIsSheetOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   isCollapsed: false,
   setIsCollapsed: () => {},
+  isSheetOpen: false,
+  setIsSheetOpen: () => {},
 });
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
   return (
-    <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
+    <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed, isSheetOpen, setIsSheetOpen }}>
       <TooltipProvider delayDuration={0}>
-        <div className="flex min-h-screen">
-          {children}
-        </div>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <div className="flex min-h-screen">
+            {children}
+          </div>
+        </Sheet>
       </TooltipProvider>
     </SidebarContext.Provider>
   );
@@ -58,24 +65,22 @@ export const Sidebar = React.forwardRef<
   
   return (
     <>
-        <aside
-          ref={ref}
-          className={cn(sidebarVariants({ isCollapsed }), 'hidden md:flex', className)}
-          {...props}
-        >
-            {children}
-        </aside>
-        
-        <Sheet>
-            <SheetContent side="left" className="p-0 w-64 border-r md:hidden">
-                <aside
-                    className={cn(sidebarVariants({ isCollapsed: false }), 'flex h-full', className)}
-                    {...props}
-                >
-                    {children}
-                </aside>
-            </SheetContent>
-        </Sheet>
+      <aside
+        ref={ref}
+        className={cn(sidebarVariants({ isCollapsed }), 'hidden md:flex', className)}
+        {...props}
+      >
+          {children}
+      </aside>
+      
+      <SheetContent side="left" className="p-0 w-64 border-r md:hidden">
+          <aside
+              className={cn(sidebarVariants({ isCollapsed: false }), 'flex h-full', className)}
+              {...props}
+          >
+              {children}
+          </aside>
+      </SheetContent>
     </>
   );
 });
@@ -170,7 +175,7 @@ export const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   SidebarMenuButtonProps
 >(({ className, isActive, tooltip, children, asChild, ...props }, ref) => {
-  const { isCollapsed } = useSidebar();
+  const { isCollapsed, setIsSheetOpen } = useSidebar();
   const Comp = asChild ? 'div' : Button;
 
   const buttonContent = (
@@ -182,6 +187,13 @@ export const SidebarMenuButton = React.forwardRef<
         isCollapsed ? 'justify-center h-10 w-10' : 'justify-start',
         className
       )}
+      onClick={(e) => {
+        if(props.onClick) props.onClick(e);
+        // Close sheet on navigation on mobile
+        if (window.innerWidth < 768) {
+            setIsSheetOpen(false);
+        }
+      }}
       {...props}
     >
       {React.Children.map(children, (child) => {
