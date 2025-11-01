@@ -2,11 +2,11 @@
 
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { PanelLeft, X } from 'lucide-react';
+import { PanelLeft } from 'lucide-react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const SidebarContext = React.createContext<{
   isCollapsed: boolean;
@@ -22,11 +22,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
       <TooltipProvider delayDuration={0}>
-        <Sheet>
-          <div className="flex min-h-screen">
-            {children}
-          </div>
-        </Sheet>
+        <div className="flex min-h-screen">
+          {children}
+        </div>
       </TooltipProvider>
     </SidebarContext.Provider>
   );
@@ -60,7 +58,6 @@ export const Sidebar = React.forwardRef<
   
   return (
     <>
-        {/* Desktop Sidebar */}
         <aside
           ref={ref}
           className={cn(sidebarVariants({ isCollapsed }), 'hidden md:flex', className)}
@@ -69,15 +66,16 @@ export const Sidebar = React.forwardRef<
             {children}
         </aside>
         
-        {/* Mobile Sidebar */}
-        <SheetContent side="left" className="p-0 w-64 border-r md:hidden">
-            <aside
-                className={cn(sidebarVariants({ isCollapsed: false }), 'flex h-full', className)}
-                {...props}
-            >
-                {children}
-            </aside>
-        </SheetContent>
+        <Sheet>
+            <SheetContent side="left" className="p-0 w-64 border-r md:hidden">
+                <aside
+                    className={cn(sidebarVariants({ isCollapsed: false }), 'flex h-full', className)}
+                    {...props}
+                >
+                    {children}
+                </aside>
+            </SheetContent>
+        </Sheet>
     </>
   );
 });
@@ -112,7 +110,7 @@ export const SidebarHeader = React.forwardRef<
       ref={ref}
       className={cn(
         'flex items-center border-b h-16',
-        isCollapsed ? 'justify-center' : 'justify-between px-4',
+        isCollapsed ? 'justify-center' : 'px-4',
         className
       )}
       {...props}
@@ -133,8 +131,16 @@ export const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('mt-auto border-t p-4')} {...props} />
-));
+    <div
+      ref={ref}
+      className={cn(
+        'mt-auto border-t',
+        className
+      )}
+      {...props}
+    />
+  ));
+
 SidebarFooter.displayName = 'SidebarFooter';
 
 export const SidebarMenu = React.forwardRef<
@@ -142,7 +148,7 @@ export const SidebarMenu = React.forwardRef<
   React.HTMLAttributes<HTMLUListElement>
 >(({ className, ...props }, ref) => {
     const { isCollapsed } = useSidebar();
-    return <ul ref={ref} className={cn('space-y-2', isCollapsed ? 'px-2' : 'px-4', className)} {...props} />
+    return <ul ref={ref} className={cn('space-y-2 py-4', isCollapsed ? 'px-2' : 'px-4', className)} {...props} />
 });
 SidebarMenu.displayName = 'SidebarMenu';
 
@@ -163,7 +169,7 @@ export interface SidebarMenuButtonProps extends ButtonProps {
 export const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   SidebarMenuButtonProps
->(({ className, variant, isActive, tooltip, children, asChild, ...props }, ref) => {
+>(({ className, isActive, tooltip, children, asChild, ...props }, ref) => {
   const { isCollapsed } = useSidebar();
   const Comp = asChild ? 'div' : Button;
 
@@ -180,8 +186,18 @@ export const SidebarMenuButton = React.forwardRef<
     >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child) && child.props.children && child.type === 'span' && isCollapsed) {
-          return null;
+            if (isCollapsed) {
+                const icon = React.Children.toArray(child.props.children)[0];
+                return <>{icon}</>
+            }
         }
+        if (typeof child === 'string' && isCollapsed) {
+            return null;
+        }
+        if (React.isValidElement(child) && child.type === 'span' && isCollapsed) {
+            return null;
+        }
+
         return child;
       })}
     </Comp>
@@ -222,23 +238,3 @@ export const SidebarTrigger = React.forwardRef<
     );
 });
 SidebarTrigger.displayName = 'SidebarTrigger';
-
-export const SidebarClose = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <SheetClose asChild>
-        <Button
-            ref={ref}
-            variant="ghost"
-            size="icon"
-            className={cn('absolute top-3 right-3', className)}
-            {...props}
-        >
-            <X />
-            <span className="sr-only">Close sidebar</span>
-        </Button>
-      </SheetClose>
-    );
-  }
-);
-SidebarClose.displayName = 'SidebarClose';

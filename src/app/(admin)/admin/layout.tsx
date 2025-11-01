@@ -3,8 +3,7 @@
 import React from 'react';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { LayoutDashboard, Upload, LogOut, PanelLeft, Settings } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LayoutDashboard, Upload, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { usePathname } from 'next/navigation';
@@ -15,11 +14,8 @@ function Header() {
             <SidebarTrigger className="md:hidden"/>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src="https://i.pravatar.cc/150?u=admin" alt="Admin" />
-                            <AvatarFallback>AD</AvatarFallback>
-                        </Avatar>
+                    <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
+                        <Settings className="h-5 w-5" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -46,7 +42,7 @@ function AdminSidebar() {
                     <h2 className="text-xl font-headline font-bold text-sidebar-foreground"><span>CET Prep Pro</span></h2>
                 </Link>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="mt-8">
                 <SidebarMenu>
                     <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip="Dashboard" isActive={pathname === '/admin/dashboard'}>
@@ -69,14 +65,6 @@ function AdminSidebar() {
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild tooltip="Settings">
-                            <Link href="#">
-                                <Settings />
-                                <span>Settings</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip="Logout">
                             <Link href="/">
                                 <LogOut />
@@ -97,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <AdminSidebar />
         <SidebarInset>
             <Header />
-            <main className="p-4 sm:p-6 lg:p-8">
+            <main className="p-4 sm:p-6 lg:p-8 bg-muted/40 min-h-[calc(100vh-4rem)]">
                 {children}
             </main>
         </SidebarInset>

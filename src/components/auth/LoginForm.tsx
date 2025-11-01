@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 interface LoginFormProps {
   role: 'student' | 'admin';
@@ -25,13 +26,39 @@ export function LoginForm({ role, title, description }: LoginFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login logic
     if (role === 'admin') {
       router.push('/admin/dashboard');
     } else {
       router.push('/student/dashboard');
     }
   };
+  
+  if (role === 'student') {
+    return (
+       <Card className="w-full max-w-sm border-2 shadow-xl hover:border-primary transition-all duration-300">
+        <form onSubmit={handleSubmit}>
+            <CardHeader className="text-center">
+            <CardTitle className="font-headline text-3xl">{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+                <p className="text-sm text-muted-foreground">
+                    Ready to test your knowledge? Jump right into your dashboard.
+                </p>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+            <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+                Go to Dashboard
+                <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+             <Button variant="outline" className="w-full" asChild>
+                <Link href="/">Back to Home</Link>
+            </Button>
+            </CardFooter>
+        </form>
+       </Card>
+    )
+  }
 
   return (
     <Card className="w-full max-w-sm border-2 shadow-xl">
@@ -46,8 +73,8 @@ export function LoginForm({ role, title, description }: LoginFormProps) {
             <Input
               id="email"
               type="email"
-              placeholder="user@example.com"
-              defaultValue={role === 'admin' ? 'admin@test.com' : 'student@test.com'}
+              placeholder="admin@example.com"
+              defaultValue="admin@test.com"
               required
             />
           </div>
