@@ -7,16 +7,34 @@ import { Button } from '@/components/ui/button';
 import { PlayCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function AvailableTests() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
   
   const upcomingTests = tests.filter(test => test.status === 'Upcoming');
+
+  if (!isMounted) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Available & Upcoming Tests</CardTitle>
+                <CardDescription>Start any available test or see what's scheduled.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+            </CardContent>
+        </Card>
+    );
+  }
 
   return (
     <Card>
