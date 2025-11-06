@@ -1,76 +1,40 @@
-# Name of your workflow
 name: Deploy Next.js site to GitHub Pages
 
-# Controls when the action will run. 
 on:
-  # Triggers the workflow on push events but only for the "main" branch
   push:
     branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Step 1: Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
         uses: actions/checkout@v4
-
-      # Step 2: Sets up Node.js for you
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # Use a stable version of Node.js
+          node-version: "20"
           cache: 'npm'
-      
-      # Step 3: Install all your project's dependencies
       - name: Install Dependencies
         run: npm install
-
-      # Step 4: Build your project for production
       - name: Build Project
         run: npm run build
-
-      # Step 5: Upload the build output (the 'out' folder) so GitHub Pages can use it
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the 'out' folder created by the 'npm run build' command
           path: './out'
 
-  # This job handles the deployment
   deploy:
-    # It needs the 'build' job to complete successfully first
     needs: build
-
-    # Grant permissions for the workflow to deploy to GitHub Pages
     permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment source
-
-    # The environment to deploy to
+      pages: write
+      id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }} # The URL of the deployed site
-
-    # The type of runner to use
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      # The final deployment step
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4```
-
-**What this file does:**
-*   It watches for any `push` to your `main` branch.
-*   It then checks out your code, installs all the necessary packages (`npm install`), and runs your build script (`npm run build`).
-*   Finally, it takes the resulting `out` folder and deploys it to GitHub Pages for you.
-
-Once you have created this file with this exact content and saved it in the `.github/workflows/` directory, let me know, and we'll proceed to the final configuration step in your repository settings.
+        uses: actions/deploy-pages@v4
